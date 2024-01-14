@@ -1,12 +1,15 @@
 import { auth } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
-import { LayoutDashboard } from "lucide-react";
+import { CircleDollarSign, Files, LayoutDashboard, ListChecks } from "lucide-react";
 
 import { db } from "@/lib/db";
 import { IconBandage } from "@/components/ui/icon-bandage";
 import { TitleForm } from "@/components/title-form";
 import { DescriptionForm } from "@/components/description-form";
 import { ImageForm } from "@/components/imageform";
+import { CategoryForm } from "@/components/category-form";
+import { PriceForm } from "@/components/priceform";
+import { AttachmentForm } from "@/components/attachmentform";
 const CourseIdPage = async ({ params }: { params: { courseId: string } }) => {
   const { userId } = auth();
 
@@ -17,6 +20,14 @@ const CourseIdPage = async ({ params }: { params: { courseId: string } }) => {
   const course = await db.course.findUnique({
     where: {
       id: params.courseId,
+      userId
+    },
+    include: {
+      attachments: {
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
     },
   });
 
@@ -25,6 +36,8 @@ const CourseIdPage = async ({ params }: { params: { courseId: string } }) => {
       name: "asc",
     },
   });
+
+console.log(categories);
 
   if (!course) {
     return redirect("/");
@@ -71,7 +84,43 @@ const CourseIdPage = async ({ params }: { params: { courseId: string } }) => {
           initialData={course}
           courseId={course.id}
           />
-
+           <CategoryForm
+          initialData={course}
+          courseId={course.id}
+          options={categories.map((category) => ({
+            label: category.name, 
+            value: category.id,
+          }))}
+          />
+        </div>
+        <div className="space-y-6">
+          <div className="flex items-center gap-x-2">
+            <IconBandage icon={ListChecks} />
+            <h2 className="text-xl"> Course Chapters</h2>
+          </div>
+          <div>
+            TODO:Chapters
+          </div>
+        </div>
+        <div>
+        <div className="flex items-center gap-x-2">
+            <IconBandage icon={CircleDollarSign} />
+            <h2 className="text-xl"> Sell Your Course</h2>
+          </div>
+          <PriceForm 
+          initialData={course}
+          courseId={course.id}
+          />
+        </div>
+        <div>
+        <div className="flex items-center gap-x-2">
+            <IconBandage icon={Files}/>
+            <h2 className="text-xl">Resources & Attachments</h2>
+          </div>
+          <AttachmentForm
+          initialData={course}
+          courseId={course.id}
+          />
         </div>
       </div>
     </div>
